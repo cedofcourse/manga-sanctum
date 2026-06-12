@@ -3,21 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mangathèque de Cédric - Manga Sanctum v7.0 Cloud</title>
-    <!-- Tailwind CSS -->
+    <title>Mangathèque de Cédric - Manga Sanctum v7.1 Cloud</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- CONFIGURATION MODE APP MOBILE (PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Nimriel OS">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <!-- LOGO OFFICIEL NAVIGATEUR & SMARTPHONE -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='140' fill='%23090d16'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%236366f1' opacity='0.15' filter='blur(40px)'/%3E%3Cpath d='M140 380V170c0-25 25-45 50-45h66v255h-66c-20 0-38 6-50 15z' fill='%236366f1'/%3E%3Cpath d='M372 380V170c0-25-25-45-50-45h-66v255h66c20 0 38 6 50 15z' fill='%23a855f7'/%3E%3Cpath d='M256 110v265' stroke='%23ffffff' stroke-width='16' stroke-linecap='round'/%3E%3Cpolygon points='256,160 270,185 300,185 275,200 285,230 256,212 227,230 237,200 212,185 242,185' fill='%23ffffff'/%3E%3C/svg%3E">
 
     <style>
@@ -43,7 +38,6 @@
         <div class="nimriel-bg-overlay"></div>
     </div>
 
-    <!-- HEADER -->
     <header class="border-b border-gray-800 bg-gray-900/40 backdrop-blur sticky top-0 z-40 px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-3">
             <div class="bg-gradient-to-br from-indigo-600 to-purple-600 p-2.5 rounded-xl text-white shadow-lg relative overflow-hidden">
@@ -68,13 +62,11 @@
     </header>
 
     <main class="max-w-7xl mx-auto p-6 space-y-8">
-        <!-- BOUTON D'INITIALISATION SÉCURISÉ -->
         <div id="initBanner" class="hidden bg-indigo-950/40 border border-indigo-800/60 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <p class="text-indigo-200">👋 Votre base de données en ligne est connectée mais vide. Voulez-vous y injecter vos 93 séries de départ automatiquement ?</p>
             <button onclick="initDatabaseWithDefault()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold shadow-md flex-shrink-0 transition-all">🚀 Injecter ma collection</button>
         </div>
 
-        <!-- STATS -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="grid grid-cols-2 gap-4 lg:col-span-2">
                 <div class="bg-gray-900/60 border border-gray-800/60 p-4 rounded-xl flex items-center gap-4 backdrop-blur-xs">
@@ -101,7 +93,6 @@
             </div>
         </section>
 
-        <!-- FILTRES -->
         <section class="space-y-3 pb-4 border-b border-gray-800">
             <div class="flex flex-wrap gap-2 items-center text-sm">
                 <span class="text-xs text-gray-500 font-semibold uppercase mr-2">Filtres :</span>
@@ -127,26 +118,37 @@
             </div>
         </section>
 
-        <!-- GRILLE -->
         <section id="collectionGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <div class="col-span-full py-12 text-center text-gray-500 italic"><i class="fa-solid fa-spinner animate-spin mr-2 text-indigo-400"></i> Chargement de la base de données en ligne...</div>
         </section>
     </main>
 
-    <!-- MODAL SUMMARY -->
     <div id="summaryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50" onclick="closeModal()">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl" onclick="event.stopPropagation()">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl overflow-y-auto max-h-[95vh]" onclick="event.stopPropagation()">
             
             <div class="flex justify-between items-start gap-4">
-                <div class="flex gap-4">
+                <div class="flex gap-4 min-w-0 flex-grow">
                     <div id="modalCoverContainer" class="w-20 h-28 rounded-lg overflow-hidden shadow-md flex-shrink-0 bg-gray-950"></div>
-                    <div>
+                    <div class="min-w-0 flex-grow">
                         <span id="modalVibe" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded"></span>
-                        <h2 id="modalTitle" class="text-lg font-bold text-gray-100 mt-1.5"></h2>
-                        <p id="modalMeta" class="text-xs text-gray-400 mt-0.5"></p>
+                        <h2 id="modalTitle" class="text-lg font-bold text-gray-100 mt-1.5 truncate"></h2>
+                        
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <div>
+                                <label class="text-[9px] uppercase font-bold text-gray-500 block">Format</label>
+                                <select id="modalFormatSelect" onchange="updateMetaFromModal()" class="w-full bg-gray-950 border border-gray-800 text-gray-300 rounded px-1.5 py-0.5 text-[11px]">
+                                    <option value="manga">📖 Manga</option>
+                                    <option value="ln">📚 Light Novel</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] uppercase font-bold text-gray-500 block">Éditeur</label>
+                                <input type="text" id="modalEditorInput" onchange="updateMetaFromModal()" class="w-full bg-gray-950 border border-gray-800 text-gray-300 rounded px-1.5 py-0.5 text-[11px]">
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors">
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors flex-shrink-0">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -154,7 +156,6 @@
             <hr class="border-gray-800">
             
             <div class="bg-gray-950/50 p-4 rounded-xl border border-gray-800/80 space-y-4 text-xs">
-                <!-- 1. Progression -->
                 <div class="flex items-center justify-between bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
                     <span class="text-gray-300 font-medium text-sm flex items-center gap-2"><i class="fa-solid fa-book-open-reader text-amber-400"></i> Lecture :</span>
                     <div class="flex items-center gap-3">
@@ -164,7 +165,6 @@
                     </div>
                 </div>
 
-                <!-- 2. Statut -->
                 <div class="flex items-center justify-between pt-1">
                     <span class="text-gray-400 font-medium"><i class="fa-solid fa-star-half-stroke mr-1.5 text-indigo-400"></i> Statut général :</span>
                     <select id="modalStatusSelect" onchange="updateSeriesStatusFromModal()" class="bg-gray-900 border border-gray-700 text-gray-100 rounded-md px-2.5 py-1 focus:outline-none focus:border-indigo-500">
@@ -174,7 +174,6 @@
                     </select>
                 </div>
 
-                <!-- 3. Max Parus -->
                 <div class="space-y-1 pt-2 border-t border-gray-800/60">
                     <label class="block text-gray-400 font-medium"><i class="fa-solid fa-layer-group mr-1.5 text-indigo-400"></i> Max Parus :</label>
                     <div class="flex gap-2">
@@ -183,7 +182,6 @@
                     </div>
                 </div>
 
-                <!-- 4. Prêts Actifs -->
                 <div class="space-y-2 pt-2 border-t border-gray-800/60">
                     <label class="block text-gray-400 font-semibold uppercase tracking-wider text-[10px] text-purple-400"><i class="fa-solid fa-hand-holding-hand mr-1.5"></i> Prêts actifs :</label>
                     <div id="modalLoansList" class="space-y-1.5 max-h-24 overflow-y-auto pr-1"></div>
@@ -196,23 +194,28 @@
                     </div>
                 </div>
 
-                <!-- 5. URL Jaquette -->
                 <div class="space-y-1 pt-2 border-t border-gray-800/60">
                     <label class="block text-gray-400 font-medium"><i class="fa-solid fa-image mr-1.5 text-indigo-400"></i> URL Jaquette :</label>
                     <div class="flex gap-2">
-                        <input type="url" id="modalCoverInput" class="flex-grow bg-gray-900 border border-gray-700 text-gray-100 rounded-md px-2.5 py-1 text-xs">
+                        <input type="url" id="modalCoverInput" class="flex-grow bg-gray-900 border border-gray-700 text-gray-100 rounded-md px-2.5 py-1 text-xs" placeholder="Lien HTTP de l'image...">
                         <button onclick="updateCoverFromModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-md text-xs font-medium">OK</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Synopsis & Suppression -->
-            <div>
-                <h4 class="text-xs uppercase font-semibold text-indigo-400 mb-1.5 tracking-wider">Synopsis</h4>
-                <p id="modalSummary" class="text-sm text-gray-300 leading-relaxed bg-gray-950/30 p-4 rounded-xl border border-gray-400/40 max-h-24 overflow-y-auto"></p>
+            <div class="space-y-2">
+                <h4 class="text-xs uppercase font-semibold text-indigo-400 tracking-wider flex items-center justify-between">
+                    <span><i class="fa-solid fa-align-left mr-1"></i> Synopsis</span>
+                    <span class="text-[10px] text-gray-500 lowercase font-normal italic">Sauvegarde automatique en quittant le champ ou avec le bouton</span>
+                </h4>
+                <textarea id="modalSummaryTextarea" rows="4" onchange="updateSummaryFromModal()" class="w-full bg-gray-950/60 border border-gray-800 rounded-xl p-3 text-xs text-gray-200 leading-relaxed focus:outline-none focus:border-indigo-500 transition-colors resize-y" placeholder="Renseigne ou colle le résumé de l'œuvre ici..."></button>
+                <div class="flex justify-end">
+                    <button onclick="updateSummaryFromModal()" class="bg-gray-800 hover:bg-indigo-600 border border-gray-700 hover:border-indigo-500 text-[11px] text-gray-300 hover:text-white px-3 py-1 rounded-lg font-medium transition-all">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Enregistrer le synopsis
+                    </button>
+                </div>
             </div>
 
-            <!-- Bouton de suppression critique -->
             <div class="pt-2 border-t border-gray-800/60 mt-3">
                 <button onclick="deleteSeries()" class="w-full bg-red-950/30 hover:bg-red-600 text-red-400 hover:text-white border border-red-900/40 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2">
                     <i class="fa-solid fa-trash-can text-[11px]"></i> Supprimer la série de ma collection
@@ -221,7 +224,6 @@
         </div>
     </div>
 
-    <!-- MODAL ADD -->
     <div id="addModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50" onclick="closeAddModal()">
         <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center">
@@ -293,7 +295,6 @@
         </div>
     </div>
 
-    <!-- SCRIPT -->
     <script>
         const defaultCollection = [
             { title: "Re:Zero (Roman)", format: "ln", owned: 15, total: 15, vibe: "Isekai", editor: "Ofelbe", status: "En cours", readTo: 8, loans: [] },
@@ -392,7 +393,7 @@
             { title: "Vivid Honey", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Niho Niba", status: "Lu", readTo: 1, loans: [] }
         ];
 
-        // 🔐 CONFIGURATIONS CLOUD CORRECTES (Instance Unique Globale)
+        // 🔐 CONFIGURATIONS CLOUD (Instance Unique Globale)
         const SUPABASE_URL = "https://bmtmvxrwwtcxvhgqkfnb.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtdG12eHJ3d3RjeHZoZ3FrZm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNDQwNjMsImV4cCI6MjA5NjgyMDA2M30.2LNnoyj9YIuMReRJ3V1BfavOou45SEsBPYoHBt-OXe4";
         
@@ -404,65 +405,39 @@
         let currentVibeFilter = null;
         let activeModalIndex = null;
 
-        // DIAGNOSTIC DE DÉMARRAGE GLOBAL
         async function startApp() {
             const grid = document.getElementById('collectionGrid');
             try {
                 if (typeof supabase === 'undefined') {
-                    throw new Error("La bibliothèque Supabase n'a pas pu être téléchargée (CDN inaccessible ou bloqué).");
+                    throw new Error("La bibliothèque Supabase n'a pas pu être téléchargée.");
                 }
                 await loadCollectionFromCloud();
-                
             } catch (err) {
-                grid.innerHTML = `
-                    <div class="col-span-full py-6 text-center bg-red-950/30 border border-red-900/50 rounded-xl p-5">
-                        <p class="text-red-400 font-bold text-sm flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Échec du démarrage Cloud
-                        </p>
-                        <p class="text-xs text-gray-200 mt-2 bg-black/50 p-3 rounded font-mono text-left overflow-x-auto whitespace-pre-wrap border border-gray-800">${err.message}</p>
-                        <div class="text-[11px] text-gray-400 mt-4 text-left space-y-1 bg-gray-950/40 p-3 rounded border border-gray-900">
-                            <p class="font-bold text-gray-300 mb-1">🛠️ Pistes pour résoudre le problème :</p>
-                            <p>• <strong>Si l'erreur parle de "relation does not exist" :</strong> Retourne dans Supabase (SQL Editor) et clique bien sur le bouton vert <strong>Run</strong>.</p>
-                            <p>• <strong>Si l'erreur parle de "Failed to fetch" :</strong> Désactive complètement ton bloqueur de pubs (Adblock, uBlock, Brave Shield) pour ton lien Netlify.</p>
-                            <p>• <strong>Pour voir les détails complets :</strong> Appuie sur <strong>F12</strong> puis va dans l'onglet <strong>Console</strong>.</p>
-                        </div>
-                    </div>`;
+                grid.innerHTML = `<div class="col-span-full py-6 text-center bg-red-950/30 border border-red-900/50 rounded-xl p-5"><p class="text-red-400 font-bold text-sm">❌ Échec Cloud</p><p class="text-xs text-gray-300 mt-2 font-mono">${err.message}</p></div>`;
             }
         }
 
-        // CHARGEMENT DEPUIS LE CLOUD
         async function loadCollectionFromCloud() {
             const { data, error } = await supabaseClient.from('manga_collection').select('*').order('title', { ascending: true });
-            
-            if (error) {
-                throw new Error(`[Erreur Base de Données] ${error.message}`);
-            }
+            if (error) throw new Error(error.message);
             
             if (!data || data.length === 0) {
                 collection = [];
                 document.getElementById('initBanner').classList.remove('hidden');
-                document.getElementById('collectionGrid').innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 italic">Base en ligne vide. Cliquez sur le bouton ci-dessus pour l'initialiser.</div>`;
+                document.getElementById('collectionGrid').innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 italic">Base vide. Cliquez sur le bouton d'injection.</div>`;
             } else {
                 document.getElementById('initBanner').classList.add('hidden');
                 collection = data;
-                updateStats();
-                renderVibeChart();
-                renderGrid();
+                updateStats(); renderVibeChart(); renderGrid();
             }
         }
 
-        // INITIALISATION AUTOMATIQUE
         async function initDatabaseWithDefault() {
-            if (confirm("Voulez-vous pousser vos 93 séries de départ sur votre serveur cloud Supabase ?")) {
-                document.getElementById('initBanner').innerHTML = `<p class="text-indigo-200 animate-pulse">⚙️ Injection de la collection en cours dans le Cloud...</p>`;
+            if (confirm("Injecter les 93 séries de départ ?")) {
+                document.getElementById('initBanner').innerHTML = `<p class="text-indigo-200 animate-pulse">⚙️ Injection Cloud en cours...</p>`;
                 const { error } = await supabaseClient.from('manga_collection').insert(defaultCollection);
-                if (error) {
-                    alert("Erreur d'injection : " + error.message);
-                    startApp();
-                } else {
-                    alert("Succès ! Votre collection est désormais sauvegardée en ligne.");
-                    startApp();
-                }
+                if (error) alert(error.message);
+                startApp();
             }
         }
 
@@ -493,8 +468,7 @@
                         <div class="w-full bg-gray-950 h-2 rounded-full overflow-hidden border border-gray-800/40">
                             <div class="${colors[v]} h-full rounded-full transition-all duration-500" style="width: ${percent}%"></div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
@@ -532,6 +506,30 @@
             }
         }
 
+        // MISE À JOUR MULTI-META (FORMAT & ÉDITEUR)
+        async function updateMetaFromModal() {
+            if (activeModalIndex !== null) {
+                let item = collection[activeModalIndex];
+                item.format = document.getElementById('modalFormatSelect').value;
+                item.editor = document.getElementById('modalEditorInput').value.trim();
+                
+                await supabaseClient.from('manga_collection').update({ format: item.format, editor: item.editor }).eq('id', item.id);
+                renderGrid();
+            }
+        }
+
+        // MISE À JOUR DU SYNOPSIS
+        async function updateSummaryFromModal() {
+            if (activeModalIndex !== null) {
+                let item = collection[activeModalIndex];
+                item.summary = document.getElementById('modalSummaryTextarea').value.trim();
+                
+                const { error } = await supabaseClient.from('manga_collection').update({ summary: item.summary }).eq('id', item.id);
+                if (error) alert("Erreur d'enregistrement : " + error.message);
+                else renderGrid();
+            }
+        }
+
         function renderLoansInModal() {
             const listContainer = document.getElementById('modalLoansList');
             listContainer.innerHTML = '';
@@ -545,8 +543,7 @@
                     <div class="flex items-center justify-between bg-purple-950/20 border border-purple-900/30 px-3 py-1 rounded-lg">
                         <span class="text-purple-300">🤝 <strong>${loan.to}</strong> (${loan.count} t.)</span>
                         <button onclick="returnLoan(${idx})" class="bg-red-950/60 border border-red-800/40 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Rendu</button>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
@@ -587,16 +584,21 @@
                     <div class="text-[9px] text-white/30 uppercase font-black tracking-widest">${item.editor}</div>
                     <div class="text-sm font-black tracking-wider text-white/80 drop-shadow-md my-auto">${initials}</div>
                     <div class="text-[8px] bg-black/40 text-gray-300 py-0.5 rounded font-bold uppercase truncate">${item.format}</div>
-                </div>
-            `;
+                </div>`;
         }
 
         function openModal(index) {
             activeModalIndex = index;
             const item = collection[index];
             document.getElementById('modalTitle').innerText = item.title;
-            document.getElementById('modalSummary').innerText = item.summary || "Aucun synopsis renseigné.";
-            document.getElementById('modalMeta').innerText = `${item.format === 'ln' ? '📚 Light Novel' : '📖 Manga'} — ${item.editor}`;
+            
+            // On remplit le textarea modifiable au lieu d'un simple paragraphe
+            document.getElementById('modalSummaryTextarea').value = item.summary || "";
+            
+            // Formulaire Meta
+            document.getElementById('modalFormatSelect').value = item.format;
+            document.getElementById('modalEditorInput').value = item.editor || "";
+            
             document.getElementById('modalStatusSelect').value = item.status;
             document.getElementById('modalCoverInput').value = item.cover || "";
             document.getElementById('modalTotalInput').value = item.total || 0;
@@ -621,13 +623,10 @@
         async function deleteSeries() {
             if (activeModalIndex !== null) {
                 const item = collection[activeModalIndex];
-                if (confirm(`⚠️ Es-tu sûr de vouloir supprimer définitivement "${item.title}" de ton Sanctum Cloud ?`)) {
+                if (confirm(`⚠️ Supprimer définitivement "${item.title}" du Cloud ?`)) {
                     const { error } = await supabaseClient.from('manga_collection').delete().eq('id', item.id);
-                    if(error) alert("Erreur cloud : " + error.message);
-                    else {
-                        closeModal();
-                        startApp();
-                    }
+                    if(error) alert(error.message);
+                    else { closeModal(); startApp(); }
                 }
             }
         }
@@ -664,7 +663,7 @@
                     item.total = newVal;
                     await supabaseClient.from('manga_collection').update({ total: item.total }).eq('id', item.id);
                     renderGrid(); updateStats();
-                    alert("Total mis à jour dans le cloud !");
+                    alert("Total à jour !");
                 }
             }
         }
@@ -689,11 +688,8 @@
             };
             
             const { error } = await supabaseClient.from('manga_collection').insert([newSeries]);
-            if(error) alert("Erreur cloud à la création : " + error.message);
-            else {
-                closeAddModal();
-                startApp();
-            }
+            if(error) alert(error.message);
+            else { closeAddModal(); startApp(); }
         }
 
         function filterType(type) {
@@ -727,7 +723,7 @@
             grid.innerHTML = '';
 
             if(collection.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 italic">Aucune série dans la base de données.</div>`;
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 italic">Aucune série dans la base.</div>`;
                 return;
             }
 
@@ -766,8 +762,7 @@
                         <div class="mt-2 bg-orange-950/20 border border-orange-900/30 rounded-lg p-2 flex items-center justify-between text-xs text-orange-400">
                             <span class="font-medium flex items-center gap-1.5"><i class="fa-solid fa-cart-shopping text-[10px]"></i> Manque :</span>
                             <span class="font-bold bg-orange-950/60 border border-orange-800/40 px-2 py-0.5 rounded text-[11px] tracking-wide">${textMissing}</span>
-                        </div>
-                    `;
+                        </div>`;
                 }
 
                 const card = document.createElement('div');
@@ -801,7 +796,6 @@
                                     <div class="h-full rounded-full bg-indigo-500 transition-all" style="width: ${progressOwnedPercent}%"></div>
                                 </div>
                             </div>
-
                             <div class="space-y-0.5">
                                 <div class="flex items-center justify-between text-[11px]">
                                     <span class="text-gray-400">Lu jusqu'au :</span>
@@ -811,8 +805,7 @@
                                     <div class="h-full rounded-full bg-amber-500 transition-all" style="width: ${progressReadPercent}%"></div>
                                 </div>
                             </div>
-                        </div>
-                        `}
+                        </div>`}
 
                         <div class="flex items-center justify-between gap-2 pt-1 mt-1 border-t border-gray-800/40">
                             <span class="text-[9px] text-gray-500"><i class="fa-solid fa-eye mr-1"></i>Détails</span>
@@ -821,15 +814,12 @@
                                 <button onclick="event.stopPropagation(); changeVolume(${index}, 1)" class="w-6 h-6 rounded bg-gray-800 border border-gray-700 hover:bg-gray-700 active:scale-90 transition-all flex items-center justify-center text-[9px]"><i class="fa-solid fa-plus"></i></button>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 grid.appendChild(card);
             });
         }
 
         document.getElementById('searchBar').addEventListener('input', renderGrid);
-        
-        // DÉMARRAGE SÉCURISÉ
         startApp();
     </script>
 </body>
