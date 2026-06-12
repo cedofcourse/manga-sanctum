@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mangathèque de Cédric - Manga Sanctum v7.0 Cloud</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- CONFIGURATION MODE APP MOBILE (PWA) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nimriel OS">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- LOGO OFFICIEL NAVIGATEUR & SMARTPHONE -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='140' fill='%23090d16'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%236366f1' opacity='0.15' filter='blur(40px)'/%3E%3Cpath d='M140 380V170c0-25 25-45 50-45h66v255h-66c-20 0-38 6-50 15z' fill='%236366f1'/%3E%3Cpath d='M372 380V170c0-25-25-45-50-45h-66v255h66c20 0 38 6 50 15z' fill='%23a855f7'/%3E%3Cpath d='M256 110v265' stroke='%23ffffff' stroke-width='16' stroke-linecap='round'/%3E%3Cpolygon points='256,160 270,185 300,185 275,200 285,230 256,212 227,230 237,200 212,185 242,185' fill='%23ffffff'/%3E%3C/svg%3E">
+
+    <style>
+        .nimriel-bg-container { position: fixed; inset: 0; z-index: -1; background-color: #040610; overflow: hidden; pointer-events: none; }
+        .bg-art { position: absolute; background-repeat: no-repeat; opacity: 0.75; transition: opacity 0.3s ease; }
+        .art-raphtalia { left: 20px; top: 20px; width: 24vw; height: 90vh; background-image: url('https://wallpapers.com/images/hd/raphtalia-anime-dreamy-fanart-xsek4rnfwgoaa7py.webp'); background-size: contain; background-position: top left; }
+        .art-rem { right: 0; top: 70px; width: 18vw; height: 45vh; background-image: url('https://wallpapers.com/images/high/cute-girl-anime-rem-qyz7awjebj2ty4es.webp'); background-size: contain; background-repeat: no-repeat; background-position: top right; z-index: -2; }
+        .art-mitsuri { right: 0; bottom: 0; width: 25vw; height: 52vh; background-image: url('https://wallpapers.com/images/high/mitsuri-kanroji-slam-i4nynlino0zbf87h.webp'); background-size: cover; background-position: center right; }
+        .nimriel-bg-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(4, 6, 16, 0.2) 0%, rgba(4, 6, 16, 0.9) 25%, rgba(4, 6, 16, 0.9) 75%, rgba(4, 6, 16, 0.2) 100%); }
+        @media (max-width: 1280px) {
+            .art-raphtalia { width: 45vw; opacity: 0.45; }
+            .art-rem { width: 40vw; height: 40vh; opacity: 0.45; }
+            .art-mitsuri { width: 40vw; height: 45vh; opacity: 0.45; }
+            .nimriel-bg-overlay { background: linear-gradient(to right, rgba(4, 6, 16, 0.2) 0%, rgba(4, 6, 16, 0.94) 30%, rgba(4, 6, 16, 0.94) 70%, rgba(4, 6, 16, 0.2) 100%); }
+        }
+    </style>
+</head>
+<body class="bg-transparent text-gray-100 min-h-screen font-sans antialiased relative">
+    <div class="nimriel-bg-container">
+        <div class="bg-art art-raphtalia"></div>
+        <div class="bg-art art-rem"></div>
+        <div class="bg-art art-mitsuri"></div>
+        <div class="nimriel-bg-overlay"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="border-b border-gray-800 bg-gray-900/40 backdrop-blur sticky top-0 z-40 px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-indigo-600 to-purple-600 p-2.5 rounded-xl text-white shadow-lg relative overflow-hidden">
+                <i class="fa-solid fa-cloud text-lg relative z-10"></i>
+            </div>
+            <div>
+               <h1 class="text-xl font-bold tracking-wide">MANGA <span class="text-indigo-400">SANCTUM</span></h1>
+               <p class="text-xs text-emerald-400 font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span> Cloud Sync Actif (Supabase)</p>
+            </div>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            <div class="relative w-full sm:w-56">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" id="searchBar" placeholder="Rechercher une série..." class="w-full bg-gray-800/80 border border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+            </div>
+
+            <button onclick="openAddModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/10 transition-all active:scale-95">
+                <i class="fa-solid fa-folder-plus"></i> Ajouter une série
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6 space-y-8">
+        <!-- BOUTON D'INITIALISATION SÉCURISÉ -->
+        <div id="initBanner" class="hidden bg-indigo-950/40 border border-indigo-800/60 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <p class="text-indigo-200">👋 Votre base de données en ligne est connectée mais vide. Voulez-vous y injecter vos 93 séries de départ automatiquement ?</p>
+            <button onclick="initDatabaseWithDefault()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold shadow-md flex-shrink-0 transition-all">🚀 Injecter ma collection</button>
+        </div>
+
+        <!-- STATS -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-2 gap-4 lg:col-span-2">
+                <div class="bg-gray-900/60 border border-gray-800/60 p-4 rounded-xl flex items-center gap-4 backdrop-blur-xs">
+                    <div class="p-3 rounded-lg bg-indigo-500/10 text-indigo-400 text-xl"><i class="fa-solid fa-layer-group"></i></div>
+                    <div><p class="text-xs text-gray-400 font-medium uppercase">Séries</p><h3 class="text-2xl font-bold mt-0.5" id="statSeries">0</h3></div>
+                </div>
+                <div class="bg-gray-900/60 border border-gray-800/60 p-4 rounded-xl flex items-center gap-4 backdrop-blur-xs">
+                    <div class="p-3 rounded-lg bg-emerald-500/10 text-emerald-400 text-xl"><i class="fa-solid fa-book"></i></div>
+                    <div><p class="text-xs text-gray-400 font-medium uppercase">Volumes Possédés</p><h3 class="text-2xl font-bold mt-0.5" id="statVolumes">0</h3></div>
+                </div>
+                <div class="bg-gray-900/60 border border-gray-800/60 p-4 rounded-xl flex items-center gap-4 backdrop-blur-xs">
+                    <div class="p-3 rounded-lg bg-amber-500/10 text-amber-400 text-xl"><i class="fa-solid fa-book-open-reader"></i></div>
+                    <div><p class="text-xs text-gray-400 font-medium uppercase">Volumes Lus</p><h3 class="text-2xl font-bold mt-0.5" id="statReadTo">0</h3></div>
+                </div>
+                <div class="bg-gray-900/60 border border-gray-800/60 p-4 rounded-xl flex items-center gap-4 backdrop-blur-xs">
+                    <div class="p-3 rounded-lg bg-purple-500/10 text-purple-400 text-xl"><i class="fa-solid fa-hand-holding-hand"></i></div>
+                    <div><p class="text-xs text-gray-400 font-medium uppercase">Séries en Prêt</p><h3 class="text-2xl font-bold mt-0.5" id="statLoans">0</h3></div>
+                </div>
+            </div>
+
+            <div class="bg-gray-900/60 border border-gray-800 p-5 rounded-xl space-y-3 backdrop-blur-xs">
+                <h4 class="text-xs uppercase font-bold tracking-wider text-gray-400 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-indigo-400"></i> Répartition par Vibe</h4>
+                <div id="vibeChartContainer" class="space-y-2.5 text-xs"></div>
+            </div>
+        </section>
+
+        <!-- FILTRES -->
+        <section class="space-y-3 pb-4 border-b border-gray-800">
+            <div class="flex flex-wrap gap-2 items-center text-sm">
+                <span class="text-xs text-gray-500 font-semibold uppercase mr-2">Filtres :</span>
+                <button onclick="filterType('all')" id="btn-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-indigo-600 text-white">Tout</button>
+                <button onclick="filterType('manga')" id="btn-manga" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-gray-900/80 border border-gray-800 text-gray-400 hover:text-gray-200">Mangas</button>
+                <button onclick="filterType('ln')" id="btn-ln" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-gray-900/80 border border-gray-800 text-gray-400 hover:text-gray-200">Light Novels</button>
+                <button onclick="filterStatus('wishlist')" id="status-wishlist" class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900/80 border border-gray-800 text-sky-400/80 hover:text-sky-400">✨ Wishlist</button>
+                
+                <div class="h-4 w-[1px] bg-gray-800 mx-2"></div>
+                
+                <button onclick="filterStatus('all')" id="status-all" class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600/10 text-indigo-400 border border-indigo-950">Tous statuts</button>
+                <button onclick="filterStatus('En cours')" id="status-reading" class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900/80 border border-gray-800 text-amber-400/80 hover:text-amber-400">🔥 En cours</button>
+                <button onclick="filterStatus('Lu')" id="status-finished" class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900/80 border border-gray-800 text-emerald-400/80 hover:text-emerald-400">✅ Lu / À jour</button>
+                <button onclick="filterStatus('Non commencé')" id="status-unread" class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900/80 border border-gray-800 text-gray-400 hover:text-gray-200">💤 À lire</button>
+                <button onclick="filterStatus('loaned')" id="status-loaned" class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900/80 border border-gray-800 text-purple-400/80 hover:text-purple-400">🤝 Prêtés</button>
+                <button onclick="filterStatus('shopping')" id="status-shopping" class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-950">🛒 À acheter</button>
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+                <button onclick="filterVibe('Isekai')" class="vibe-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-gray-900/80 text-cyan-400 border border-cyan-950/50 hover:bg-cyan-950/20">🌌 Isekai & Fantasy</button>
+                <button onclick="filterVibe('Dark Fantasy')" class="vibe-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-gray-900/80 text-red-400 border border-red-950/50 hover:bg-red-950/20">🩸 Dark & Action</button>
+                <button onclick="filterVibe('Émotion')" class="vibe-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-gray-900/80 text-emerald-400 border border-emerald-950/50 hover:bg-emerald-950/20">🌸 Émotion</button>
+                <button onclick="filterVibe('Rom-Com')" class="vibe-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-gray-900/80 text-pink-400 border border-pink-950/50 hover:bg-pink-950/20">💖 Rom-Com & Harem</button>
+            </div>
+        </section>
+
+        <!-- GRILLE -->
+        <section id="collectionGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div class="col-span-full py-12 text-center text-gray-500 italic"><i class="fa-solid fa-spinner animate-spin mr-2 text-indigo-400"></i> Chargement de la base de données en ligne...</div>
+        </section>
+    </main>
+
+    <!-- MODAL SUMMARY -->
+    <div id="summaryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50" onclick="closeModal()">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl" onclick="event.stopPropagation()">
+            
+            <div class="flex justify-between items-start gap-4">
+                <div class="flex gap-4">
+                    <div id="modalCoverContainer" class="w-20 h-28 rounded-lg overflow-hidden shadow-md flex-shrink-0 bg-gray-950"></div>
+                    <div>
+                        <span id="modalVibe" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded"></span>
+                        <h2 id="modalTitle" class="text-lg font-bold text-gray-100 mt-1.5"></h2>
+                        <p id="modalMeta" class="text-xs text-gray-400 mt-0.5"></p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <hr class="border-gray-800">
+            
+            <div class="bg-gray-950/50 p-4 rounded-xl border border-gray-800/80 space-y-4 text-xs">
+                <!-- 1. Progression -->
+                <div class="flex items-center justify-between bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
+                    <span class="text-gray-300 font-medium text-sm flex items-center gap-2"><i class="fa-solid fa-book-open-reader text-amber-400"></i> Lecture :</span>
+                    <div class="flex items-center gap-3">
+                        <button onclick="changeReadTo(-1)" class="w-8 h-8 rounded-lg bg-gray-800 border border-gray-700 hover:bg-gray-700 active:scale-90 transition-all text-sm flex items-center justify-center"><i class="fa-solid fa-minus"></i></button>
+                        <span id="modalReadToText" class="font-extrabold text-amber-400 text-sm min-w-16 text-center">Tome 0</span>
+                        <button onclick="changeReadTo(1)" class="w-8 h-8 rounded-lg bg-gray-800 border border-gray-700 hover:bg-gray-700 active:scale-90 transition-all text-sm flex items-center justify-center"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <!-- 2. Statut -->
+                <div class="flex items-center justify-between pt-1">
+                    <span class="text-gray-400 font-medium"><i class="fa-solid fa-star-half-stroke mr-1.5 text-indigo-400"></i> Statut général :</span>
+                    <select id="modalStatusSelect" onchange="updateSeriesStatusFromModal()" class="bg-gray-900 border border-gray-700 text-gray-100 rounded-md px-2.5 py-1 focus:outline-none focus:border-indigo-500">
+                        <option value="Non commencé">💤 À lire</option>
+                        <option value="En cours">🔥 En cours</option>
+                        <option value="Lu">✅ Lu / À jour</option>
+                    </select>
+                </div>
+
+                <!-- 3. Max Parus -->
+                <div class="space-y-1 pt-2 border-t border-gray-800/60">
+                    <label class="block text-gray-400 font-medium"><i class="fa-solid fa-layer-group mr-1.5 text-indigo-400"></i> Max Parus :</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="modalTotalInput" class="flex-grow bg-gray-900 border border-gray-700 text-gray-100 rounded-md px-2.5 py-1 text-xs">
+                        <button onclick="updateTotalFromModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-md text-xs font-medium">OK</button>
+                    </div>
+                </div>
+
+                <!-- 4. Prêts Actifs -->
+                <div class="space-y-2 pt-2 border-t border-gray-800/60">
+                    <label class="block text-gray-400 font-semibold uppercase tracking-wider text-[10px] text-purple-400"><i class="fa-solid fa-hand-holding-hand mr-1.5"></i> Prêts actifs :</label>
+                    <div id="modalLoansList" class="space-y-1.5 max-h-24 overflow-y-auto pr-1"></div>
+                    <div class="bg-gray-900 p-2 rounded-lg border border-gray-800 mt-1 space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="addLoanTo" placeholder="Nom..." class="bg-gray-950 border border-gray-700 text-gray-100 rounded px-2 py-1 focus:outline-none focus:border-purple-500 text-xs">
+                            <input type="number" id="addLoanCount" min="1" placeholder="Nb" class="bg-gray-950 border border-gray-700 text-gray-100 rounded px-2 py-1 focus:outline-none focus:border-purple-500 text-xs">
+                        </div>
+                        <button onclick="addNewLoan()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-1 rounded text-[11px] active:scale-95">+ Valider</button>
+                    </div>
+                </div>
+
+                <!-- 5. URL Jaquette -->
+                <div class="space-y-1 pt-2 border-t border-gray-800/60">
+                    <label class="block text-gray-400 font-medium"><i class="fa-solid fa-image mr-1.5 text-indigo-400"></i> URL Jaquette :</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="modalCoverInput" class="flex-grow bg-gray-900 border border-gray-700 text-gray-100 rounded-md px-2.5 py-1 text-xs">
+                        <button onclick="updateCoverFromModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-md text-xs font-medium">OK</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Synopsis & Suppression -->
+            <div>
+                <h4 class="text-xs uppercase font-semibold text-indigo-400 mb-1.5 tracking-wider">Synopsis</h4>
+                <p id="modalSummary" class="text-sm text-gray-300 leading-relaxed bg-gray-950/30 p-4 rounded-xl border border-gray-400/40 max-h-24 overflow-y-auto"></p>
+            </div>
+
+            <!-- Bouton de suppression critique -->
+            <div class="pt-2 border-t border-gray-800/60 mt-3">
+                <button onclick="deleteSeries()" class="w-full bg-red-950/30 hover:bg-red-600 text-red-400 hover:text-white border border-red-900/40 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can text-[11px]"></i> Supprimer la série de ma collection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADD -->
+    <div id="addModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50" onclick="closeAddModal()">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center">
+                <h2 class="text-base font-bold text-gray-100 flex items-center gap-2"><i class="fa-solid fa-folder-plus text-indigo-400"></i> Nouvelle Œuvre</h2>
+                <button onclick="closeAddModal()" class="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <hr class="border-gray-800">
+            <form id="addForm" onsubmit="saveNewSeries(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-gray-400 font-semibold mb-1 uppercase">Titre</label>
+                    <input type="text" id="addTitle" required class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-400 font-semibold mb-1 uppercase">Format</label>
+                        <select id="addFormat" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                            <option value="manga">📖 Manga</option>
+                            <option value="ln">📚 Light Novel</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 font-semibold mb-1 uppercase">Éditeur</label>
+                        <input type="text" id="addEditor" required class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-400 font-semibold mb-1 uppercase">Possédés</label>
+                        <input type="number" id="addOwned" min="0" value="0" required class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 font-semibold mb-1 uppercase">Max Parus</label>
+                        <input type="number" id="addTotal" min="1" value="1" required class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-400 font-semibold mb-1 uppercase">Vibe</label>
+                        <select id="addVibe" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                            <option value="Isekai">🌌 Isekai & Fantasy</option>
+                            <option value="Dark Fantasy">🩸 Dark & Action</option>
+                            <option value="Émotion">🌸 Émotion</option>
+                            <option value="Rom-Com">💖 Rom-Com & Harem</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 font-semibold mb-1 uppercase">Statut</label>
+                        <select id="addStatus" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                            <option value="Non commencé">💤 À lire</option>
+                            <option value="En cours">🔥 En cours</option>
+                            <option value="Lu">✅ Lu / À jour</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-400 font-semibold mb-1 uppercase">Tome lu</label>
+                    <input type="number" id="addReadTo" min="0" value="0" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                </div>
+                <div>
+                    <label class="block text-gray-400 font-semibold mb-1 uppercase">URL Jaquette</label>
+                    <input type="url" id="addCover" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100">
+                </div>
+                <div>
+                    <label class="block text-gray-400 font-semibold mb-1 uppercase">Synopsis</label>
+                    <textarea id="addSummary" rows="2" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gray-100 resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg shadow-lg mt-2">Enregistrer dans le Cloud</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        const defaultCollection = [
+            { title: "Re:Zero (Roman)", format: "ln", owned: 15, total: 15, vibe: "Isekai", editor: "Ofelbe", status: "En cours", readTo: 8, loans: [] },
+            { title: "Konosuba (Roman)", format: "ln", owned: 11, total: 12, vibe: "Isekai", editor: "Meian", status: "Non commencé", readTo: 0, loans: [] }, 
+            { title: "Chainsaw Man - Buddy Stories", format: "ln", owned: 1, total: 1, vibe: "Dark Fantasy", editor: "Crunchyroll", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "One Piece Roman - Heroines", format: "ln", owned: 1, total: 2, vibe: "Émotion", editor: "Glénat", status: "Lu", readTo: 1, loans: [] }, 
+            { title: "Kaiju n°8 : Immersion dans la 3e unité !", format: "ln", owned: 1, total: 1, vibe: "Dark Fantasy", editor: "Crunchyroll", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Mushoku Tensei", format: "manga", owned: 23, total: 23, vibe: "Isekai", editor: "Doki-Doki", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "The Rising of the Shield Hero", format: "manga", owned: 28, total: 28, vibe: "Isekai", editor: "Doki-Doki", status: "En cours", readTo: 23, loans: [] },
+            { title: "The Eminence in Shadow", format: "manga", owned: 16, total: 16, vibe: "Isekai", editor: "Doki-Doki", status: "En cours", readTo: 4, loans: [] },
+            { title: "Konosuba : Sois Béni Monde Merveilleux !", format: "manga", owned: 19, total: 19, vibe: "Isekai", editor: "Meian", status: "En cours", readTo: 16, loans: [] }, 
+            { title: "Arifureta - De zéro à héros", format: "manga", owned: 14, total: 14, vibe: "Isekai", editor: "Delcourt", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Bofuri", format: "manga", owned: 8, total: 8, vibe: "Isekai", editor: "Mana Books", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "In the Land of Leadale", format: "manga", owned: 7, total: 7, vibe: "Isekai", editor: "Doki-Doki", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Welcome to Japan! Elfe de mes rêves…", format: "manga", owned: 7, total: 7, vibe: "Isekai", editor: "Meian", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Why Nobody Remembers My World ?", format: "manga", owned: 13, total: 13, vibe: "Isekai", editor: "Doki-Doki", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Magical Cheat : Sorcière dans un autre monde", format: "manga", owned: 2, total: 2, vibe: "Isekai", editor: "Soleil", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Elden Ring - Le chemin vers l'Arbre-Monde", format: "manga", owned: 10, total: 10, vibe: "Isekai", editor: "Mana Books", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Dungeon Elf", format: "manga", owned: 1, total: 1, vibe: "Isekai", editor: "Meian", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Re:Zero - 1er arc : Une journée à la capitale", format: "manga", owned: 2, total: 2, vibe: "Isekai", editor: "Ototo", status: "Lu", readTo: 2, loans: [] },
+            { title: "Re:Zero - 2e arc : Une semaine au manoir", format: "manga", owned: 5, total: 5, vibe: "Isekai", editor: "Ototo", status: "En cours", readTo: 4, loans: [] },
+            { title: "Re:Zero - 3e Arc : Truth of Zero", format: "manga", owned: 11, total: 11, vibe: "Isekai", editor: "Ototo", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Re:Zero - 4e Arc : Le Sanctuaire et la Sorcière de l'Avarice", format: "manga", owned: 10, total: 10, vibe: "Isekai", editor: "Ototo", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Harem in the Fantasy World Dungeon", format: "manga", owned: 10, total: 10, vibe: "Isekai", editor: "Meian", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "How NOT to Summon a Demon Lord", format: "manga", owned: 17, total: 17, vibe: "Isekai", editor: "Meian", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Berserk", format: "manga", owned: 42, total: 42, vibe: "Dark Fantasy", editor: "Glénat", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Chainsaw Man", format: "manga", owned: 21, total: 21, vibe: "Dark Fantasy", editor: "Kazé", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "One Piece", format: "manga", owned: 112, total: 112, vibe: "Dark Fantasy", editor: "Glénat", status: "En cours", readTo: 107, loans: [] },
+            { title: "Bleach", format: "manga", owned: 74, total: 74, vibe: "Dark Fantasy", editor: "Glénat", status: "Lu", readTo: 74, loans: [] },
+            { title: "Black Clover", format: "manga", owned: 37, total: 37, vibe: "Dark Fantasy", editor: "Kazé", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Fairy Tail", format: "manga", owned: 63, total: 63, vibe: "Dark Fantasy", editor: "Pika", status: "Lu", readTo: 63, loans: [] },
+            { title: "Fairy Tail Zero", format: "manga", owned: 1, total: 1, vibe: "Dark Fantasy", editor: "Pika", status: "Lu", readTo: 1, loans: [] },
+            { title: "Seven Deadly Sins", format: "manga", owned: 41, total: 41, vibe: "Dark Fantasy", editor: "Pika", status: "Lu", readTo: 41, loans: [] },
+            { title: "Blue Lock", format: "manga", owned: 32, total: 32, vibe: "Dark Fantasy", editor: "Pika", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Darwin's Game", format: "manga", owned: 30, total: 30, vibe: "Dark Fantasy", editor: "Ki-oon", status: "Lu", readTo: 30, loans: [] },
+            { title: "Demon Slayer", format: "manga", owned: 23, total: 23, vibe: "Dark Fantasy", editor: "Panini", status: "Lu", readTo: 23, loans: [] },
+            { title: "Kaiju n°8", format: "manga", owned: 16, total: 16, vibe: "Dark Fantasy", editor: "Crunchyroll", status: "Lu", readTo: 16, loans: [] },
+            { title: "Edens Zero", format: "manga", owned: 33, total: 33, vibe: "Dark Fantasy", editor: "Pika", status: "Lu", readTo: 33, loans: [] },
+            { title: "Kenshin le vagabond", format: "manga", owned: 14, total: 14, vibe: "Dark Fantasy", editor: "France Loisirs", status: "Lu", readTo: 14, loans: [] },
+            { title: "Neon-genesis evangelion", format: "manga", owned: 7, total: 7, vibe: "Dark Fantasy", editor: "Glénat", status: "Lu", readTo: 7, loans: [] },
+            { title: "SINoALICE", format: "manga", owned: 6, total: 6, vibe: "Dark Fantasy", editor: "Kurokawa", status: "Lu", readTo: 6, loans: [] },
+            { title: "Koyoharu Gotouge : Histoires courtes", format: "manga", owned: 1, total: 1, vibe: "Dark Fantasy", editor: "Panini", status: "Lu", readTo: 1, loans: [] },
+            { title: "Death Note", format: "manga", owned: 6, total: 6, vibe: "Dark Fantasy", editor: "Kana", status: "Lu", readTo: 6, loans: [] },
+            { title: "Les Carnets de l'Apothicaire", format: "manga", owned: 16, total: 16, vibe: "Émotion", editor: "Ki-oon", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Frieren", format: "manga", owned: 15, total: 15, vibe: "Émotion", editor: "Ki-oon", status: "En cours", readTo: 12, loans: [] },
+            { title: "Oshi no Ko", format: "manga", owned: 16, total: 16, vibe: "Émotion", editor: "Kurokawa", status: "Lu", readTo: 16, loans: [] },
+            { title: "Aria", format: "manga", owned: 7, total: 7, vibe: "Émotion", editor: "Ki-oon", status: "Lu", readTo: 7, loans: [] },
+            { title: "Fruits Basket", format: "manga", owned: 12, total: 12, vibe: "Émotion", editor: "Delcourt", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Les Gouttes de Dieu", format: "manga", owned: 44, total: 44, vibe: "Émotion", editor: "Glénat", status: "Lu", readTo: 44, loans: [] },
+            { title: "Kamisama School", format: "manga", owned: 11, total: 11, vibe: "Émotion", editor: "Ki-oon", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Les promeneuses de l'apocalypse", format: "manga", owned: 7, total: 7, vibe: "Émotion", editor: "Doki-Doki", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Sakura Wars", format: "manga", owned: 9, total: 9, vibe: "Émotion", editor: "Mana Books", status: "Lu", readTo: 9, loans: [] },
+            { title: "Stitch et le Samouraï", format: "manga", owned: 3, total: 3, vibe: "Émotion", editor: "nobi nobi!", status: "Lu", readTo: 3, loans: [] },
+            { title: "Silent Witch", format: "manga", owned: 0, total: 0, vibe: "Émotion", editor: "Soleil", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Time Paradox Ghost Writer", format: "manga", owned: 2, total: 2, vibe: "Émotion", editor: "Kana", status: "Lu", readTo: 2, loans: [] },
+            { title: "A Couple of Cuckoos", format: "manga", owned: 26, total: 26, vibe: "Rom-Com", editor: "Pika", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Aï Non-Stop !", format: "manga", owned: 8, total: 8, vibe: "Rom-Com", editor: "Pika", status: "Lu", readTo: 8, loans: [] },
+            { title: "Amour Amer", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Niho Niba", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Call of the Night", format: "manga", owned: 17, total: 17, vibe: "Rom-Com", editor: "Kurokawa", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Darling in the FranXX", format: "manga", owned: 8, total: 8, vibe: "Rom-Com", editor: "Delcourt", status: "Lu", readTo: 8, loans: [] },
+            { title: "DNA²", format: "manga", owned: 5, total: 5, vibe: "Rom-Com", editor: "Tonkam", status: "Lu", readTo: 5, loans: [] },
+            { title: "Giri Giri Sisters", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Dynamite", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Girlfriend Girlfriend", format: "manga", owned: 11, total: 11, vibe: "Rom-Com", editor: "Noeve", status: "En cours", readTo: 5, loans: [] },
+            { title: "Goddesses Cafe Terrace", format: "manga", owned: 17, total: 18, vibe: "Rom-Com", editor: "Pika", status: "Non commencé", readTo: 0, loans: [] }, 
+            { title: "I''s", format: "manga", owned: 15, total: 15, vibe: "Rom-Com", editor: "Tonkam", status: "Lu", readTo: 15, loans: [] },
+            { title: "Je pensais aimer les filles, mais…", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Soleil", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Kaijû Girl Carameliser", format: "manga", owned: 8, total: 8, vibe: "Rom-Com", editor: "Ototo", status: "En cours", readTo: 2, loans: [] },
+            { title: "Rent-a-Girlfriend", format: "manga", owned: 22, total: 22, vibe: "Rom-Com", editor: "Noeve", status: "En cours", readTo: 12, loans: [] },
+            { title: "Sexy Cosplay Doll", format: "manga", owned: 14, total: 14, vibe: "Rom-Com", editor: "Kana", status: "En cours", readTo: 12, loans: [] },
+            { title: "The Quintessential Quintuplets", format: "manga", owned: 14, total: 14, vibe: "Rom-Com", editor: "Pika", status: "Lu", readTo: 14, loans: [] },
+            { title: "Love Hina", format: "manga", owned: 14, total: 14, vibe: "Rom-Com", editor: "Pika", status: "Lu", readTo: 14, loans: [] },
+            { title: "Negima ! Le Maître Magicien", format: "manga", owned: 38, total: 38, vibe: "Rom-Com", editor: "Pika", status: "Lu", readTo: 38, loans: [] },
+            { title: "World’s End Harem", format: "manga", owned: 18, total: 18, vibe: "Rom-Com", editor: "Delcourt", status: "En cours", readTo: 14, loans: [] },
+            { title: "World's End Harem Fantasy", format: "manga", owned: 14, total: 14, vibe: "Rom-Com", editor: "Delcourt", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Video Girl Aï", format: "manga", owned: 9, total: 9, vibe: "Rom-Com", editor: "Tonkam", status: "Lu", readTo: 9, loans: [] },
+            { title: "Mon destin... entre les mains des femmes", format: "manga", owned: 8, total: 8, vibe: "Rom-Com", editor: "Delcourt", status: "En cours", readTo: 4, loans: [] },
+            { title: "Slow Life In Another World (I Wish!)", format: "manga", owned: 8, total: 8, vibe: "Rom-Com", editor: "Meian", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Somnia", format: "manga", owned: 2, total: 2, vibe: "Rom-Com", editor: "Panini", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Power Antoinette", format: "manga", owned: 3, total: 3, vibe: "Rom-Com", editor: "Doki-Doki", status: "Lu", readTo: 3, loans: [] },
+            { title: "Sailor Moon", format: "manga", owned: 10, total: 10, vibe: "Rom-Com", editor: "Pika", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Les couleurs de l'innocence", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "IDP", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Sweethearts", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Dynamite", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Love Juice Marking", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Niho Niba", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Mai favorite", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "IDP", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Reika ma splendide maid", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Hot Manga", status: "Non commencé", readTo: 0, loans: [] },
+            { title: "Ensorcelantes", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Hot Manga", status: "Lu", readTo: 1, loans: [] },
+            { title: "Harem entre copines", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Hot Manga", status: "Lu", readTo: 1, loans: [] },
+            { title: "Les lectures érotiques d'une étudiante", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Hot Manga", status: "Lu", readTo: 1, loans: [] },
+            { title: "Love Contest", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Niho Niba", status: "Lu", readTo: 1, loans: [] },
+            { title: "Onedari Pussies", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Hot Manga", status: "Lu", readTo: 1, loans: [] },
+            { title: "Peachy-Butt Girls", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Dynamite", status: "Lu", readTo: 1, loans: [] },
+            { title: "Spicy Stories", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Dynamite", status: "Lu", readTo: 1, loans: [] },
+            { title: "Tits! Tits! Tits!", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Dynamite", status: "Lu", readTo: 1, loans: [] },
+            { title: "Une pointe d'insolence", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Niho Niba", status: "Lu", readTo: 1, loans: [] },
+            { title: "Vilaines filles au corps de rêve", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Hot Manga", status: "Lu", readTo: 1, loans: [] },
+            { title: "Vivid Honey", format: "manga", owned: 1, total: 1, vibe: "Rom-Com", editor: "Niho Niba", status: "Lu", readTo: 1, loans: [] }
+        ];
+
+        // 🔐 CONFIGURATIONS CLOUD CORRECTES (Instance Unique Globale)
+        const SUPABASE_URL = "https://bmtmvxrwwtcxvhgqkfnb.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtdG12eHJ3d3RjeHZoZ3FrZm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNDQwNjMsImV4cCI6MjA5NjgyMDA2M30.2LNnoyj9YIuMReRJ3V1BfavOou45SEsBPYoHBt-OXe4";
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let collection = [];
+
+        let currentTypeFilter = 'all';
+        let currentStatusFilter = 'all';
+        let currentVibeFilter = null;
+        let activeModalIndex = null;
+
+        // DIAGNOSTIC DE DÉMARRAGE GLOBAL
+        async function startApp() {
+            const grid = document.getElementById('collectionGrid');
+            try {
+                if (typeof supabase === 'undefined') {
+                    throw new Error("La bibliothèque Supabase n'a pas pu être téléchargée (CDN inaccessible ou bloqué).");
+                }
+                await loadCollectionFromCloud();
+                
+            } catch (err) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-6 text-center bg-red-950/30 border border-red-900/50 rounded-xl p-5">
+                        <p class="text-red-400 font-bold text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Échec du démarrage Cloud
+                        </p>
+                        <p class="text-xs text-gray-200 mt-2 bg-black/50 p-3 rounded font-mono text-left overflow-x-auto whitespace-pre-wrap border border-gray-800">${err.message}</p>
+                        <div class="text-[11px] text-gray-400 mt-4 text-left space-y-1 bg-gray-950/40 p-3 rounded border border-gray-900">
+                            <p class="font-bold text-gray-300 mb-1">🛠️ Pistes pour résoudre le problème :</p>
+                            <p>• <strong>Si l'erreur parle de "relation does not exist" :</strong> Retourne dans Supabase (SQL Editor) et clique bien sur le bouton vert <strong>Run</strong>.</p>
+                            <p>• <strong>Si l'erreur parle de "Failed to fetch" :</strong> Désactive complètement ton bloqueur de pubs (Adblock, uBlock, Brave Shield) pour ton lien Netlify.</p>
+                            <p>• <strong>Pour voir les détails complets :</strong> Appuie sur <strong>F12</strong> puis va dans l'onglet <strong>Console</strong>.</p>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        // CHARGEMENT DEPUIS LE CLOUD
+        async function loadCollectionFromCloud() {
+            const { data, error } = await supabaseClient.from('manga_collection').select('*').order('title', { ascending: true });
+            
+            if (error) {
+                throw new Error(`[Erreur Base de Données] ${error.message}`);
+            }
+            
+            if (!data || data.length === 0) {
+                collection = [];
+                document.getElementById('initBanner').classList.remove('hidden');
+                document.getElementById('collectionGrid').innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 italic">Base en ligne vide. Cliquez sur le bouton ci-dessus pour l'initialiser.</div>`;
+            } else {
+                document.getElementById('initBanner').classList.add('hidden');
+                collection = data;
+                updateStats();
+                renderVibeChart();
+                renderGrid();
+            }
+        }
+
+        // INITIALISATION AUTOMATIQUE
+        async function initDatabaseWithDefault() {
+            if (confirm("Voulez-vous pousser vos 93 séries de départ sur votre serveur cloud Supabase ?")) {
+                document.getElementById('initBanner').innerHTML = `<p class="text-indigo-200 animate-pulse">⚙️ Injection de la collection en cours dans le Cloud...</p>`;
+                const { error } = await supabaseClient.from('manga_collection').insert(defaultCollection);
+                if (error) {
+                    alert("Erreur d'injection : " + error.message);
+                    startApp();
+                } else {
+                    alert("Succès ! Votre collection est désormais sauvegardée en ligne.");
+                    startApp();
+                }
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('statSeries').innerText = collection.length;
+            document.getElementById('statVolumes').innerText = collection.reduce((acc, item) => acc + item.owned, 0);
+            document.getElementById('statReadTo').innerText = collection.reduce((acc, item) => acc + (item.readTo || 0), 0);
+            document.getElementById('statLoans').innerText = collection.filter(item => item.loans && item.loans.length > 0).length;
+        }
+
+        function renderVibeChart() {
+            const container = document.getElementById('vibeChartContainer');
+            container.innerHTML = '';
+            const vibes = ['Isekai', 'Dark Fantasy', 'Émotion', 'Rom-Com'];
+            const labels = { 'Isekai': '🌌 Fantasy', 'Dark Fantasy': '🩸 Dark/Action', 'Émotion': '🌸 Émotion', 'Rom-Com': '💖 Rom-Com' };
+            const colors = { 'Isekai': 'bg-cyan-500', 'Dark Fantasy': 'bg-red-500', 'Émotion': 'bg-emerald-500', 'Rom-Com': 'bg-pink-500' };
+            const total = collection.length;
+            
+            vibes.forEach(v => {
+                const count = collection.filter(item => item.vibe === v).length;
+                const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                container.innerHTML += `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px] font-medium text-gray-400">
+                            <span>${labels[v]}</span>
+                            <span class="font-bold text-gray-200">${count} (${percent}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-950 h-2 rounded-full overflow-hidden border border-gray-800/40">
+                            <div class="${colors[v]} h-full rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function changeVolume(index, amount) {
+            let item = collection[index];
+            let newVal = item.owned + amount;
+            if (newVal >= 0) {
+                item.owned = newVal;
+                if (item.owned > item.total) item.total = item.owned;
+                if(item.owned === item.total && (item.readTo || 0) === item.owned && item.owned > 0) item.status = "Lu";
+                
+                await supabaseClient.from('manga_collection').update({ owned: item.owned, total: item.total, status: item.status }).eq('id', item.id);
+                updateStats(); renderVibeChart(); renderGrid();
+            }
+        }
+
+        async function changeReadTo(amount) {
+            if (activeModalIndex !== null) {
+                let item = collection[activeModalIndex];
+                let newVal = (item.readTo || 0) + amount;
+                if (newVal >= 0 && newVal <= item.total) {
+                    item.readTo = newVal;
+                    if (item.readTo === item.total && item.total > 0) {
+                        item.status = "Lu"; document.getElementById('modalStatusSelect').value = "Lu";
+                    } else if (item.readTo > 0) {
+                        item.status = "En cours"; document.getElementById('modalStatusSelect').value = "En cours";
+                    } else if (item.readTo === 0) {
+                        item.status = "Non commencé"; document.getElementById('modalStatusSelect').value = "Non commencé";
+                    }
+                    
+                    await supabaseClient.from('manga_collection').update({ "readTo": item.readTo, status: item.status }).eq('id', item.id);
+                    updateStats(); renderVibeChart(); renderGrid();
+                    document.getElementById('modalReadToText').innerText = `Tome ${item.readTo}`;
+                }
+            }
+        }
+
+        function renderLoansInModal() {
+            const listContainer = document.getElementById('modalLoansList');
+            listContainer.innerHTML = '';
+            const item = collection[activeModalIndex];
+            if(!item.loans || item.loans.length === 0) {
+                listContainer.innerHTML = `<p class="text-gray-500 italic text-center py-1">Aucun prêt sur cette série.</p>`;
+                return;
+            }
+            item.loans.forEach((loan, idx) => {
+                listContainer.innerHTML += `
+                    <div class="flex items-center justify-between bg-purple-950/20 border border-purple-900/30 px-3 py-1 rounded-lg">
+                        <span class="text-purple-300">🤝 <strong>${loan.to}</strong> (${loan.count} t.)</span>
+                        <button onclick="returnLoan(${idx})" class="bg-red-950/60 border border-red-800/40 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Rendu</button>
+                    </div>
+                `;
+            });
+        }
+
+        async function addNewLoan() {
+            const nameInput = document.getElementById('addLoanTo');
+            const countInput = document.getElementById('addLoanCount');
+            const name = nameInput.value.trim();
+            const count = parseInt(countInput.value) || 0;
+            if(name === '' || count <= 0) return;
+            
+            let item = collection[activeModalIndex];
+            if(!item.loans) item.loans = [];
+            item.loans.push({ to: name, count: count });
+            
+            await supabaseClient.from('manga_collection').update({ loans: item.loans }).eq('id', item.id);
+            nameInput.value = ''; countInput.value = '';
+            renderLoansInModal(); updateStats(); renderGrid();
+        }
+
+        async function returnLoan(idx) {
+            let item = collection[activeModalIndex];
+            item.loans.splice(idx, 1);
+            await supabaseClient.from('manga_collection').update({ loans: item.loans }).eq('id', item.id);
+            renderLoansInModal(); updateStats(); renderGrid();
+        }
+
+        function generateCoverHTML(item) {
+            if (item.cover && item.cover.trim() !== "") {
+                return `<img src="${item.cover}" alt="${item.title}" class="w-full h-full object-cover">`;
+            }
+            let grad = "from-cyan-900 to-slate-900";
+            if(item.vibe === 'Dark Fantasy') grad = "from-red-950 to-neutral-900";
+            if(item.vibe === 'Émotion') grad = "from-emerald-950 to-teal-900";
+            if(item.vibe === 'Rom-Com') grad = "from-pink-950 to-rose-900";
+            const initials = item.title.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+            return `
+                <div class="w-full h-full bg-gradient-to-br ${grad} flex flex-col justify-between p-2 text-center border border-white/5">
+                    <div class="text-[9px] text-white/30 uppercase font-black tracking-widest">${item.editor}</div>
+                    <div class="text-sm font-black tracking-wider text-white/80 drop-shadow-md my-auto">${initials}</div>
+                    <div class="text-[8px] bg-black/40 text-gray-300 py-0.5 rounded font-bold uppercase truncate">${item.format}</div>
+                </div>
+            `;
+        }
+
+        function openModal(index) {
+            activeModalIndex = index;
+            const item = collection[index];
+            document.getElementById('modalTitle').innerText = item.title;
+            document.getElementById('modalSummary').innerText = item.summary || "Aucun synopsis renseigné.";
+            document.getElementById('modalMeta').innerText = `${item.format === 'ln' ? '📚 Light Novel' : '📖 Manga'} — ${item.editor}`;
+            document.getElementById('modalStatusSelect').value = item.status;
+            document.getElementById('modalCoverInput').value = item.cover || "";
+            document.getElementById('modalTotalInput').value = item.total || 0;
+
+            const vibeBadge = document.getElementById('modalVibe');
+            vibeBadge.innerText = item.vibe;
+            vibeBadge.className = "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded";
+            if (item.vibe === 'Isekai') vibeBadge.classList.add('bg-cyan-950', 'text-cyan-400');
+            else if (item.vibe === 'Dark Fantasy') vibeBadge.classList.add('bg-red-950', 'text-red-400');
+            else if (item.vibe === 'Émotion') vibeBadge.classList.add('bg-emerald-950', 'text-emerald-400');
+            else if (item.vibe === 'Rom-Com') vibeBadge.classList.add('bg-pink-950', 'text-pink-400');
+
+            document.getElementById('modalCoverContainer').innerHTML = generateCoverHTML(item);
+            document.getElementById('modalReadToText').innerText = `Tome ${item.readTo || 0}`;
+            
+            renderLoansInModal();
+            document.getElementById('summaryModal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('summaryModal').classList.add('hidden'); activeModalIndex = null; }
+
+        async function deleteSeries() {
+            if (activeModalIndex !== null) {
+                const item = collection[activeModalIndex];
+                if (confirm(`⚠️ Es-tu sûr de vouloir supprimer définitivement "${item.title}" de ton Sanctum Cloud ?`)) {
+                    const { error } = await supabaseClient.from('manga_collection').delete().eq('id', item.id);
+                    if(error) alert("Erreur cloud : " + error.message);
+                    else {
+                        closeModal();
+                        startApp();
+                    }
+                }
+            }
+        }
+
+        async function updateSeriesStatusFromModal() {
+            if(activeModalIndex !== null) {
+                let item = collection[activeModalIndex];
+                const currentStatus = document.getElementById('modalStatusSelect').value;
+                item.status = currentStatus;
+                if(currentStatus === 'Lu') item.readTo = item.owned;
+                else if(currentStatus === 'Non commencé') item.readTo = 0;
+                
+                await supabaseClient.from('manga_collection').update({ status: item.status, "readTo": item.readTo }).eq('id', item.id);
+                renderGrid(); updateStats();
+                document.getElementById('modalReadToText').innerText = `Tome ${item.readTo}`;
+            }
+        }
+
+        async function updateCoverFromModal() {
+            if(activeModalIndex !== null) {
+                let item = collection[activeModalIndex];
+                item.cover = document.getElementById('modalCoverInput').value.trim();
+                await supabaseClient.from('manga_collection').update({ cover: item.cover }).eq('id', item.id);
+                renderGrid();
+                document.getElementById('modalCoverContainer').innerHTML = generateCoverHTML(item);
+            }
+        }
+
+        async function updateTotalFromModal() {
+            if(activeModalIndex !== null) {
+                let item = collection[activeModalIndex];
+                const newVal = parseInt(document.getElementById('modalTotalInput').value);
+                if (!isNaN(newVal)) {
+                    item.total = newVal;
+                    await supabaseClient.from('manga_collection').update({ total: item.total }).eq('id', item.id);
+                    renderGrid(); updateStats();
+                    alert("Total mis à jour dans le cloud !");
+                }
+            }
+        }
+
+        function openAddModal() { document.getElementById('addModal').classList.remove('hidden'); }
+        function closeAddModal() { document.getElementById('addModal').classList.add('hidden'); document.getElementById('addForm').reset(); }
+
+        async function saveNewSeries(event) {
+            event.preventDefault();
+            const newSeries = {
+                title: document.getElementById('addTitle').value,
+                format: document.getElementById('addFormat').value,
+                editor: document.getElementById('addEditor').value,
+                owned: parseInt(document.getElementById('addOwned').value) || 0,
+                total: parseInt(document.getElementById('addTotal').value) || 1,
+                vibe: document.getElementById('addVibe').value,
+                status: document.getElementById('addStatus').value,
+                readTo: parseInt(document.getElementById('addReadTo').value) || 0,
+                cover: document.getElementById('addCover').value.trim(),
+                summary: document.getElementById('addSummary').value || "",
+                loans: []
+            };
+            
+            const { error } = await supabaseClient.from('manga_collection').insert([newSeries]);
+            if(error) alert("Erreur cloud à la création : " + error.message);
+            else {
+                closeAddModal();
+                startApp();
+            }
+        }
+
+        function filterType(type) {
+            currentTypeFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900/80 border border-gray-800 text-gray-400 hover:text-gray-200");
+            document.getElementById(`btn-${type}`).className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white shadow-md";
+            renderGrid();
+        }
+
+        function filterStatus(status) {
+            currentStatusFilter = status;
+            const btnIds = { 'all': 'status-all', 'En cours': 'status-reading', 'Lu': 'status-finished', 'Non commencé': 'status-unread', 'loaned': 'status-loaned', 'shopping': 'status-shopping', 'wishlist': 'status-wishlist' };
+            document.querySelectorAll('.status-filter-btn').forEach(btn => btn.className = "status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-900/80 border border-gray-800 text-gray-400");
+            
+            let activeBtn = document.getElementById(btnIds[status]);
+            if(status === 'all') activeBtn.className = "status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600/10 text-indigo-400 border border-indigo-950";
+            if(status === 'En cours') activeBtn.className = "status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-950";
+            if(status === 'Lu') activeBtn.className = "status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-950";
+            if(status === 'Non commencé') activeBtn.className = "status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 border border-gray-700 text-gray-200";
+            if(status === 'loaned') activeBtn.className = "status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-950";
+            if(status === 'shopping') activeBtn.className = "status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-950";
+            if(status === 'wishlist') activeBtn.className = "status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-sky-500/10 text-sky-400 border border-sky-950";
+            renderGrid();
+        }
+
+        function filterVibe(vibe) { currentVibeFilter = currentVibeFilter === vibe ? null : vibe; renderGrid(); }
+
+        function renderGrid() {
+            const grid = document.getElementById('collectionGrid');
+            const search = document.getElementById('searchBar').value.toLowerCase();
+            grid.innerHTML = '';
+
+            if(collection.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 italic">Aucune série dans la base de données.</div>`;
+                return;
+            }
+
+            collection.forEach((item, index) => {
+                if (currentTypeFilter !== 'all' && item.format !== currentTypeFilter) return;
+                if (currentStatusFilter === 'loaned') {
+                    if (!item.loans || item.loans.length === 0) return;
+                } else if (currentStatusFilter === 'shopping') {
+                    if (item.owned >= item.total) return;
+                } else if (currentStatusFilter === 'wishlist') {
+                    if (item.owned > 0) return;
+                } else if (currentStatusFilter !== 'all' && item.status !== currentStatusFilter) return;
+                
+                if (currentVibeFilter && item.vibe !== currentVibeFilter) return;
+                if (search && !item.title.toLowerCase().includes(search)) return;
+
+                const isCompleted = item.owned >= item.total && item.owned > 0;
+                const progressOwnedPercent = item.total > 0 ? (item.owned / item.total) * 100 : 0;
+                const progressReadPercent = item.owned > 0 ? ((item.readTo || 0) / item.owned) * 100 : 0;
+                
+                let statusBadge = `<span class="text-[10px] text-gray-400 bg-gray-950 border border-gray-800 px-1.5 py-0.5 rounded flex items-center gap-1"><i class="fa-solid fa-moon text-[8px]"></i> À lire</span>`;
+                if(item.status === 'En cours') statusBadge = `<span class="text-[10px] text-amber-400 bg-amber-950/30 border border-amber-900/30 px-1.5 py-0.5 rounded flex items-center gap-1"><i class="fa-solid fa-fire text-[8px]"></i> En cours</span>`;
+                if(item.status === 'Lu') statusBadge = `<span class="text-[10px] text-emerald-400 bg-emerald-950/30 border border-emerald-900/30 px-1.5 py-0.5 rounded flex items-center gap-1"><i class="fa-solid fa-check text-[8px]"></i> À jour</span>`;
+
+                let loanBadge = "";
+                if (item.loans && item.loans.length > 0) {
+                    const stringSummary = item.loans.map(l => `${l.to} (${l.count}t)`).join(', ');
+                    loanBadge = `<span class="text-[10px] text-purple-400 bg-purple-950/40 border border-purple-900/40 px-1.5 py-0.5 rounded flex items-center gap-1 truncate max-w-[120px]"><i class="fa-solid fa-hand-holding-hand text-[8px]"></i> ${stringSummary}</span>`;
+                }
+
+                let shoppingListBlock = "";
+                if (item.owned < item.total) {
+                    const nextMissing = item.owned + 1;
+                    const textMissing = nextMissing === item.total ? `Tome ${item.total}` : `Tomes ${nextMissing} à ${item.total}`;
+                    shoppingListBlock = `
+                        <div class="mt-2 bg-orange-950/20 border border-orange-900/30 rounded-lg p-2 flex items-center justify-between text-xs text-orange-400">
+                            <span class="font-medium flex items-center gap-1.5"><i class="fa-solid fa-cart-shopping text-[10px]"></i> Manque :</span>
+                            <span class="font-bold bg-orange-950/60 border border-orange-800/40 px-2 py-0.5 rounded text-[11px] tracking-wide">${textMissing}</span>
+                        </div>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = `bg-gray-900/70 backdrop-blur-xs border ${isCompleted ? 'border-emerald-900/20' : 'border-gray-800/50'} rounded-xl flex overflow-hidden hover:border-indigo-500/60 transition-all cursor-pointer shadow-md group`;
+                card.setAttribute('onclick', `openModal(${index})`);
+                
+                card.innerHTML = `
+                    <div class="w-24 sm:w-28 h-44 bg-gray-950 border-r border-gray-800/50 overflow-hidden flex-shrink-0 relative group-hover:scale-[1.02] transition-transform">
+                        ${generateCoverHTML(item)}
+                    </div>
+                    <div class="flex flex-col justify-between p-3 flex-grow min-w-0">
+                        <div class="space-y-0.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1 min-w-0">
+                                    ${statusBadge}
+                                    ${loanBadge}
+                                </div>
+                                <span class="text-[10px] text-gray-500 font-medium truncate max-w-[60px] text-right flex-shrink-0">${item.editor}</span>
+                            </div>
+                            <h4 class="font-bold text-gray-100 text-sm sm:text-base tracking-wide line-clamp-1 group-hover:text-indigo-400 transition-colors mt-1">${item.title}</h4>
+                        </div>
+
+                        ${currentStatusFilter === 'shopping' ? shoppingListBlock : `
+                        <div class="space-y-1.5 mt-2">
+                            <div class="space-y-0.5">
+                                <div class="flex items-center justify-between text-[11px]">
+                                    <span class="text-gray-400">Possédés :</span>
+                                    <span class="font-bold text-indigo-400">${item.owned} / ${item.total}</span>
+                                </div>
+                                <div class="w-full bg-gray-950 h-1 rounded-full overflow-hidden border border-gray-800/30">
+                                    <div class="h-full rounded-full bg-indigo-500 transition-all" style="width: ${progressOwnedPercent}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-0.5">
+                                <div class="flex items-center justify-between text-[11px]">
+                                    <span class="text-gray-400">Lu jusqu'au :</span>
+                                    <span class="font-bold text-amber-400">T. ${item.readTo || 0}</span>
+                                </div>
+                                <div class="w-full bg-gray-950 h-1 rounded-full overflow-hidden border border-gray-800/30">
+                                    <div class="h-full rounded-full bg-amber-500 transition-all" style="width: ${progressReadPercent}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        `}
+
+                        <div class="flex items-center justify-between gap-2 pt-1 mt-1 border-t border-gray-800/40">
+                            <span class="text-[9px] text-gray-500"><i class="fa-solid fa-eye mr-1"></i>Détails</span>
+                            <div class="flex gap-1">
+                                <button onclick="event.stopPropagation(); changeVolume(${index}, -1)" class="w-6 h-6 rounded bg-gray-800 border border-gray-700 hover:bg-gray-700 active:scale-90 transition-all flex items-center justify-center text-[9px]"><i class="fa-solid fa-minus"></i></button>
+                                <button onclick="event.stopPropagation(); changeVolume(${index}, 1)" class="w-6 h-6 rounded bg-gray-800 border border-gray-700 hover:bg-gray-700 active:scale-90 transition-all flex items-center justify-center text-[9px]"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('searchBar').addEventListener('input', renderGrid);
+        
+        // DÉMARRAGE SÉCURISÉ
+        startApp();
+    </script>
+</body>
+</html>
